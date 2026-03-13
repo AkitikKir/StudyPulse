@@ -76,4 +76,4 @@ Workflow: `.github/workflows/android-debug-apk.yml`
 4. Сессия повторения: flip + оценка + изменение следующей даты.
 5. Рост streak и достижений.
 6. Уведомление о повторении.
-7. Ссылка на последний CI artifact APK.
+7. Ссылка на последний CI artifact APK
