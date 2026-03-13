@@ -1,0 +1,80 @@
+StudyPulse Build Setup (Firebase + GitHub Secrets)
+
+1) Firebase project and Android app
+- Open Firebase Console: https://console.firebase.google.com
+- Create/select project.
+- Add Android app with package: com.growl.studypulse
+- Download google-services.json
+- Local build: place file at app/google-services.json
+
+2) Enable Firebase Authentication providers
+- Firebase Console -> Build -> Authentication -> Get started
+
+Enable Google provider:
+- Turn on Google in Sign-in method
+- Add support email
+- In Firebase project settings add SHA-1/SHA-256 for Android app
+
+Enable GitHub provider:
+- Turn on GitHub in Sign-in method
+- In GitHub OAuth App set callback URL from Firebase provider page
+- Copy GitHub Client ID + Client Secret into Firebase provider settings
+
+(Optional) Keep Anonymous enabled if you want fallback auth.
+
+3) Enable Realtime Database
+- Firebase Console -> Build -> Realtime Database -> Create Database
+- Select region (closest to users)
+- Start in test mode for development, then switch to rules below
+
+Recommended rules (per-user access):
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    }
+  }
+}
+
+4) What app syncs to Realtime DB
+Path: users/{uid}/studypulse
+- stats: streaks/reviews/achievements
+- cards: front/back/nextReviewAt/updatedAt
+- updatedAt: server timestamp
+
+5) GitHub Secrets
+Repository -> Settings -> Secrets and variables -> Actions
+Add:
+- GOOGLE_SERVICES_JSON = full raw content of google-services.json
+- GROQ_API_KEY = Groq API key
+
+6) CI workflow behavior
+Workflow file: .github/workflows/android-debug-apk.yml
+- Injects GOOGLE_SERVICES_JSON into app/google-services.json
+- Injects GROQ_API_KEY into ~/.gradle/gradle.properties
+- Builds debug APK artifact
+
+7) App auth integration status
+Implemented in app:
+- Google auth -> FirebaseAuth with Google credential
+- GitHub auth -> FirebaseAuth OAuthProvider("github.com")
+- Sync to Realtime DB after successful auth
+
+8) Quick verification checklist
+- Google provider enabled in Firebase
+- GitHub provider enabled in Firebase
+- Realtime Database created
+- Rules configured
+- Secrets added in GitHub
+- Run workflow: Actions -> Android Debug APK -> Run workflow
+
+9) Common errors
+- Missing secret GOOGLE_SERVICES_JSON: secret not set or empty
+- Missing secret GROQ_API_KEY: secret not set or empty
+- PERMISSION_DENIED from Realtime DB: rules not configured or user not authenticated
+- Google auth fails: missing SHA-1/SHA-256 in Firebase Android app settings
+- GitHub auth fails: wrong callback URL or GitHub client credentials
+- google-services package mismatch: verify package is exactly com.growl.studypulse
