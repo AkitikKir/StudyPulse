@@ -19,6 +19,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -28,6 +29,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -534,6 +536,19 @@ private fun SessionScreen(
     onGrade: (ReviewGrade) -> Unit,
     onRefresh: () -> Unit
 ) {
+    val currentCard = state.currentCard ?: run {
+        GlassCard {
+            Text(
+                text = "На сейчас нет карточек к повторению",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+        return
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -543,19 +558,6 @@ private fun SessionScreen(
     ) {
         Button(onClick = onRefresh, modifier = Modifier.fillMaxWidth()) {
             Text("Обновить очередь")
-        }
-
-        if (state.currentCard == null) {
-            GlassCard {
-                Text(
-                    text = "На сейчас нет карточек к повторению",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            return
         }
 
         val rotation by animateFloatAsState(
@@ -586,7 +588,7 @@ private fun SessionScreen(
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = if (isAnswer) state.currentCard.back else state.currentCard.front,
+                            text = if (isAnswer) currentCard.back else currentCard.front,
                             style = MaterialTheme.typography.headlineSmall,
                             color = Color.White,
                             textAlign = TextAlign.Center
@@ -623,7 +625,7 @@ private fun SessionScreen(
 }
 
 @Composable
-private fun GlassCard(content: @Composable Column.() -> Unit) {
+private fun GlassCard(content: @Composable ColumnScope.() -> Unit) {
     Card(
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0x1FFFFFFF))
